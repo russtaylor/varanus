@@ -23,7 +23,7 @@ curl localhost:8080 -X POST -H "Content-Type: application/json" -d '{           
         "data": {
           "@type": "type.googleapis.com/google.pubsub.v1.PubsubMessage",
           "attributes": {
-             "port":"443",
+             "port":443,
              "url":"expired.badssl.com"
           }
         }
