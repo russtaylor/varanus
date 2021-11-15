@@ -16,8 +16,14 @@ require (
 	github.com/google/go-cmp v0.5.1 // indirect
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/googleapis/gax-go/v2 v2.0.5 // indirect
+	github.com/gorilla/mux v1.8.0 // indirect
+	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/lightstep/tracecontext.go v0.0.0-20181129014701-1757c391b1ac // indirect
+	github.com/mailgun/mailgun-go/v4 v4.5.3 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
+	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	go.opencensus.io v0.22.4 // indirect
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
