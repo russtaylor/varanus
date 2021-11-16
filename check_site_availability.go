@@ -122,6 +122,7 @@ func validateAttributes(attrs CheckAttributes) (CheckAttributes, error) {
 		SSL:       ssl,
 		Timeout:   timeout,
 		URL:       *urlObject,
+		Email:     attrs.Email,
 	}
 	return parsedAttrs, nil
 }
