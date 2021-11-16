@@ -7,6 +7,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"net"
+	"net/mail"
 	"net/url"
 	"russt.io/varanus/connection_errors"
 	"time"
@@ -103,6 +104,12 @@ func validateAttributes(attrs CheckAttributes) (CheckAttributes, error) {
 		return attrs, err
 	}
 
+	err = validateEmailAddress(attrs.Email)
+	if err != nil {
+		log.Fatalf("Unable to validate email address: %s", attrs.Email)
+		return attrs, nil
+	}
+
 	attrs.URL = *urlObject
 
 	timeout := attrs.Timeout
@@ -125,6 +132,14 @@ func validateAttributes(attrs CheckAttributes) (CheckAttributes, error) {
 		Email:     attrs.Email,
 	}
 	return parsedAttrs, nil
+}
+
+func validateEmailAddress(emailAddress string) error {
+	_, err := mail.ParseAddress(emailAddress)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func getPort(attrs CheckAttributes) (int, error) {
