@@ -1,4 +1,4 @@
-package check_attributes
+package connectivity_check
 
 import (
 	"errors"
