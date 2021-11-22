@@ -7,12 +7,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"os"
 	"reflect"
+	"russt.io/varanus/check_attributes"
 	"russt.io/varanus/connection_errors"
 	"strings"
 	"time"
 )
 
-func SendAlertEmail(attrs CheckAttributes, err error) {
+func SendAlertEmail(attrs check_attributes.Attributes, err error) {
 	mailgunKey := strings.TrimSpace(os.Getenv("MAILGUN_KEY"))
 	emailDomain := strings.TrimSpace(os.Getenv("MAILGUN_DOMAIN"))
 	emailSender := strings.TrimSpace(os.Getenv("VARANUS_SENDER_EMAIL"))
