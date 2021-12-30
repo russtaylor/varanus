@@ -1,70 +1,59 @@
 package mail
 
 import (
-	"context"
 	"fmt"
-	"github.com/mailgun/mailgun-go/v4"
 	log "github.com/sirupsen/logrus"
-	"os"
 	"reflect"
 	"russt.io/varanus/connection_errors"
 	"russt.io/varanus/connectivity_check"
-	"strings"
 	"time"
 )
 
 func SendAlertEmail(attrs connectivity_check.Attributes, err error) {
-	mailgunKey := strings.TrimSpace(os.Getenv("MAILGUN_KEY"))
-	emailDomain := strings.TrimSpace(os.Getenv("MAILGUN_DOMAIN"))
-	emailSender := strings.TrimSpace(os.Getenv("VARANUS_SENDER_EMAIL"))
-
-	template := "undefined"
-	title := "Undefined Error"
+	emailTitle := "Undefined Error"
+	failureType := "Unknown Failure"
+	failureMessage := "Generic Message"
+	shortFailureType := "Unknown Failure"
 
 	switch err.(type) {
 	default:
 		log.Errorf("Unknown error type: %v", reflect.TypeOf(err))
 		return
 	case *connection_errors.DNSError:
-		template = "dns_failure"
-		title = fmt.Sprintf("DNS Failure for %v", attrs.UrlString)
-	case *connection_errors.SSLExpiredError:
-		template = "ssl_error"
-		title = fmt.Sprintf("SSL Error for %v", attrs.UrlString)
+		emailTitle = fmt.Sprintf("DNS Failure for %v", attrs.URL.Hostname())
+		failureType = "DNS Failure"
+		failureMessage = "DNS Lookup Failed"
+		shortFailureType = "DNS Lookup Failed"
+	case *connection_errors.TLSExpiredError:
+		emailTitle = fmt.Sprintf("SSL Error for %v", attrs.URL.Hostname())
+		failureType = "SSL Certificate Expired"
+		failureMessage = "Your SSL certificate has expired"
+		shortFailureType = "SSL Expired"
+	case *connection_errors.TLSExpiresWithinPeriodError:
+		emailTitle = fmt.Sprintf("SSL Expires soon for %v", attrs.URL.Hostname())
+		failureType = "SSL Certificate Expires Soon"
+		failureMessage = "Your SSL certificate expires in less than 7 days"
+		shortFailureType = "SSL Expires Soon"
 	}
 	now := time.Now()
 	alertTime := now.UTC().Format(time.UnixDate)
 
-	mg := mailgun.NewMailgun(emailDomain, mailgunKey)
-
-	sender := emailSender
-	subject := title
-	recipient := attrs.Email
-
-	message := mg.NewMessage(sender, subject, "", recipient)
-	message.SetTemplate(template)
-
-	err = message.AddTemplateVariable("address", attrs.UrlString)
-	if err != nil {
-		log.Errorf("Error setting address variable: %v", err.Error())
+	templateVars := TemplateVars{
+		FormattedTime:    alertTime,
+		Url:              attrs.UrlString,
+		Hostname:         attrs.URL.Hostname(),
+		FailureType:      failureType,
+		FailureMessage:   failureMessage,
+		ShortFailureType: shortFailureType,
 	}
 
-	err = message.AddTemplateVariable("hostname", attrs.URL.Hostname())
+	message, err := CompileTemplate(templateVars)
 	if err != nil {
-		log.Errorf("Error setting hostname variable: %v", err.Error())
+		log.Fatalf("Unable to compile template! %v", err.Error())
 	}
 
-	err = message.AddTemplateVariable("time", alertTime)
+	err = SendMailgun(attrs.Email, emailTitle, message)
 	if err != nil {
-		log.Errorf("Error setting address variable: %v", err.Error())
+		log.Fatal("Unable to send email via Mailgun!")
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-
-	resp, id, err := mg.Send(ctx, message)
-	if err != nil {
-		log.Fatalf("Error sending message: %v", err.Error())
-	}
-	log.Infof("Alert message sent. ID: %s, Response: %s", id, resp)
 }
