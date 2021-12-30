@@ -2,6 +2,7 @@ package varanus
 
 import (
 	"context"
+	"github.com/rickb777/date/period"
 	log "github.com/sirupsen/logrus"
 	"russt.io/varanus/connectivity_check"
 	"russt.io/varanus/mail"
@@ -12,6 +13,8 @@ type PubSubMessage struct {
 }
 
 func CheckSiteAvailability(_ context.Context, message PubSubMessage) error {
+	expirationAlertPeriod := period.New(0, 0, 7, 0, 0, 0)
+
 	parsedAttrs, err := connectivity_check.ValidateAttributes(message.CheckAttributes)
 	if err != nil {
 		log.Errorf("Error parsing request attributes!")
@@ -32,7 +35,7 @@ func CheckSiteAvailability(_ context.Context, message PubSubMessage) error {
 	}
 	if parsedAttrs.SSL == true {
 		log.Infof("Checking SSL connection to %v", parsedAttrs.UrlString)
-		err = connectivity_check.CheckTLSConnection(parsedAttrs)
+		err = connectivity_check.CheckTLSConnection(parsedAttrs, expirationAlertPeriod)
 		if err != nil {
 			mail.SendAlertEmail(parsedAttrs, err)
 			return err
