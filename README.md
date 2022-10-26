@@ -55,4 +55,67 @@ curl localhost:8080 -X POST -H "Content-Type: application/json" -d '{
 
 ## Deployment
 
-TODO
+### Create your Secret
+
+Before your app can send any emails, you'll need to create the secret for your Cloud Function to use (you can just
+specify it as an environment variable, but that's not very secure). Create a new secret by [following Google's
+docs](https://cloud.google.com/secret-manager/docs/create-secret). Keep track of the `name` you use, you'll need
+it in a bit.
+
+### Create your Pub/Sub Topic
+
+You'll need to create a pub/sub topic that will trigger your function. You can re-use the same topic for multiple site
+checks, so you can give it a generic name.
+
+```shell
+gcloud pubsub topics create <PUBSUB_TOPIC>
+```
+
+### Create your Function
+
+Creating the function is fairly straightforward. Run the following (filling in values as necessary) from your local
+clone of this repo:
+
+```shell
+gcloud functions deploy <FUNCTION_NAME> \
+  --entry-point=CheckSiteAvailability \
+  --runtime=go116 \
+  --set-secrets 'MAILGUN_KEY=<SECRET_NAME>:<SECRET_VERSION>' \
+  --set-env-vars PROJECT_ID=<PROJECT_ID> \
+  --set-env-vars VARANUS_SENDER_EMAIL=<EMAIL_ADDRESS> \
+  --trigger-topic=<PUBSUB_TOPIC> \
+  --project=<PROJECT_NAME> \
+  --source=.
+```
+
+Make sure that completes successfully.
+
+Note: I'm looking into using Cloud Functions 2nd Gen, but haven't tested it yet. So if you go that route, YMMV.
+
+### Test Triggering your Function
+
+To perform an (almost) end-to-end test, we can manually create some messages in Pub/Sub to ensure that the function is
+working as expected.
+
+For example:
+
+```shell
+gcloud pubsub topics publish <PUBSUB_TOPIC> --attribute=email="<EMAIL>",url="https://expired.badssl.com"
+```
+
+Assuming everything is set up correctly, that should send an email to the address specified. If you don't receive an
+email, check the logs for your cloud function in the Google Console, or run:
+
+```shell
+gcloud functions logs read <FUNCTION_NAME>
+```
+
+### Schedule Periodic Runs
+
+Finally, to make sure this is running and actually notifies you when problems arise, you need to schedule its runs.
+
+Adjust the cron schedule as needed. The following will run the check every 5 minutes:
+
+```shell
+gcloud scheduler jobs create pubsub <JOB_NAME> --schedule="*/5 * * * *" --topic=<PUBSUB_TOPIC> --attributes=email="<EMAIL>",url="<URL_TO_CHECK>"
+```
