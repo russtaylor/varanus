@@ -22,6 +22,7 @@ func SendMailgun(emailRecipient string, emailTitle string, htmlContent string) e
 
 	message := mg.NewMessage(sender, subject, "", recipient)
 	message.SetHtml(htmlContent)
+	log.Tracef("Set HTML email content to: %s", htmlContent)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()

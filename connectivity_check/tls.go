@@ -29,6 +29,7 @@ func CheckTLSConnection(attrs Attributes, expirationPeriod period.Period) error 
 	}(conn)
 
 	if err := conn.Handshake(); err != nil {
+		log.Errorf("Handshake failed when connecting to %s", attrs.URL.Host)
 		return err
 	}
 
@@ -47,11 +48,13 @@ func CheckTLSConnection(attrs Attributes, expirationPeriod period.Period) error 
 
 	for _, cert := range certs {
 		if now.After(cert.NotAfter) {
+			log.Warnf("Certificate for %s has expired", attrs.URL.Host)
 			return &connection_errors.TLSExpiredError{
 				Host: attrs.URL.Host,
 			}
 		}
 		if expirationAlertThreshold.After(cert.NotAfter) {
+			log.Warnf("Certificate for %s expires soon", attrs.URL.Host)
 			return &connection_errors.TLSExpiresWithinPeriodError{
 				Host:   attrs.URL.Host,
 				Period: expirationPeriod,
