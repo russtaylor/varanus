@@ -82,7 +82,9 @@ gcloud functions deploy <FUNCTION_NAME> \
   --runtime=go116 \
   --set-secrets 'MAILGUN_KEY=<SECRET_NAME>:<SECRET_VERSION>' \
   --set-env-vars PROJECT_ID=<PROJECT_ID> \
+  --set-env-vars MAILGUN_DOMAIN=<EMAIL_DOMAIN> \
   --set-env-vars VARANUS_SENDER_EMAIL=<EMAIL_ADDRESS> \
+  --set-env-vars SOURCE_DIR='./serverless_function_source_code' \
   --trigger-topic=<PUBSUB_TOPIC> \
   --project=<PROJECT_NAME> \
   --source=.

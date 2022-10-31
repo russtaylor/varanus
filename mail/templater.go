@@ -18,6 +18,7 @@ type TemplateVars struct {
 }
 
 func CompileTemplate(templateVars TemplateVars) (string, error) {
+	// TODO: Look in ./serverless_function_source_code if we can't find the templates by the env var
 	sourceDir, present := os.LookupEnv("SOURCE_DIR")
 	templatePath := "mail/templates/failure_email.html"
 	if present {

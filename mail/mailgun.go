@@ -10,6 +10,7 @@ import (
 )
 
 func SendMailgun(emailRecipient string, emailTitle string, htmlContent string) error {
+	// TODO: Validate these exist and provide a clear failure message if they don't
 	mailgunKey := strings.TrimSpace(os.Getenv("MAILGUN_KEY"))
 	emailDomain := strings.TrimSpace(os.Getenv("MAILGUN_DOMAIN"))
 	emailSender := strings.TrimSpace(os.Getenv("VARANUS_SENDER_EMAIL"))
