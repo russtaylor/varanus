@@ -1,10 +1,10 @@
 package connectivity_check
 
 import (
-	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"net"
+	"russt.io/varanus/connection_errors"
 	"time"
 )
 
@@ -14,7 +14,10 @@ func CheckConnectivity(attrs Attributes) error {
 	_, err := net.DialTimeout("tcp", hostnameWithPort, timeout)
 	if err != nil {
 		log.Infof("Unable to establish connection with '%v'", hostnameWithPort)
-		return errors.New("couldn't connect to " + hostnameWithPort)
+		log.Infof("More detailed error: %v", err.Error())
+		return &connection_errors.GenericError{
+			Host: attrs.URL.Host,
+		}
 	}
 	return nil
 }

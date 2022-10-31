@@ -31,7 +31,9 @@ func CheckSiteAvailability(_ context.Context, message PubSubMessage) error {
 	log.Infof("Checking connectivity to %v", parsedAttrs.UrlString)
 	err = connectivity_check.CheckConnectivity(parsedAttrs)
 	if err != nil {
-		panic("Error connecting to site... Error: " + err.Error())
+		mail.SendAlertEmail(parsedAttrs, err)
+		log.Infof("Unable to connect to site: %v", parsedAttrs.UrlString)
+		return err
 	}
 	if parsedAttrs.SSL == true {
 		log.Infof("Checking SSL connection to %v", parsedAttrs.UrlString)
